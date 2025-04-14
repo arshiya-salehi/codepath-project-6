@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import SearchBar from "./SearchBar"
-import FilterSection from "./FilterSection"
-import StatsSection from "./StatsSection"
-import BreweryCard from "./BreweryCard"
+import { Routes, Route } from 'react-router-dom'
+import Dashboard from './Dashboard'
+import BreweryDetail from './BreweryDetail'
 
 function App() {
   const [breweries, setBreweries] = useState([])
@@ -37,19 +36,16 @@ function App() {
   useEffect(() => {
     let results = breweries
 
-    // Apply search filter
     if (searchTerm) {
       results = results.filter(brewery =>
         brewery.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
-    // Apply brewery type filter
     if (breweryType !== 'all') {
       results = results.filter(brewery => brewery.brewery_type === breweryType)
     }
 
-    // Apply state filter
     if (stateFilter !== 'all') {
       results = results.filter(brewery => brewery.state === stateFilter)
     }
@@ -60,50 +56,25 @@ function App() {
   if (isLoading) return <div className="loading">Loading...</div>
   if (error) return <div className="error">Error: {error}</div>
 
-  // Calculate statistics
-  const totalBreweries = breweries.length
-  const microBreweries = breweries.filter(b => b.brewery_type === 'micro').length
-  const statesRepresented = [...new Set(breweries.map(b => b.state))].length
-  const averagePerState = (totalBreweries / statesRepresented).toFixed(1)
-
   return (
-    <div className="app">
-      <header className="header">
-        <h1>Brewery Dashboard</h1>
-        <p>Explore craft breweries across the United States</p>
-      </header>
-
-      <div className="dashboard">
-        <div className="controls">
-          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          <FilterSection
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Dashboard
             breweries={breweries}
+            filteredBreweries={filteredBreweries}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
             breweryType={breweryType}
             setBreweryType={setBreweryType}
             stateFilter={stateFilter}
             setStateFilter={setStateFilter}
           />
-        </div>
-
-        <StatsSection
-          totalBreweries={totalBreweries}
-          microBreweries={microBreweries}
-          statesRepresented={statesRepresented}
-          averagePerState={averagePerState}
-          showingResults={filteredBreweries.length}
-        />
-
-        <div className="brewery-list">
-          {filteredBreweries.length > 0 ? (
-            filteredBreweries.map(brewery => (
-              <BreweryCard key={brewery.id} brewery={brewery} />
-            ))
-          ) : (
-            <div className="no-results">No breweries match your filters</div>
-          )}
-        </div>
-      </div>
-    </div>
+        }
+      />
+      <Route path="/brewery/:id" element={<BreweryDetail />} />
+    </Routes>
   )
 }
 
